@@ -11,8 +11,8 @@ token = CommonSettings().OPENAI_API_KEY
 class Model(StrEnum):
     gpt_4o = "gpt-4o"
     gpt_4o_mini = "gpt-4o-mini"
-    gpt_o1 = "gpt-o1"
-    gpt_o1_mini = "gpt-o1-mini"
+    o1_mini = "o1-mini"
+    o1_preview = "o1-preview"
 
 
 def get_client():
