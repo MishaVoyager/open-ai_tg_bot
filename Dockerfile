@@ -1,5 +1,5 @@
 ARG PYTHON_VERSION=3.12.4
-FROM docker-proxy.kontur.host/python:${PYTHON_VERSION}-slim AS base
+FROM python:${PYTHON_VERSION}-slim AS base
 
 # Prevents Python from writing pyc files.
 ENV PYTHONDONTWRITEBYTECODE=1
