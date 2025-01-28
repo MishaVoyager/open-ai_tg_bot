@@ -1,3 +1,4 @@
+import logging
 from enum import StrEnum
 
 from openai import OpenAI
@@ -32,4 +33,5 @@ def generate(content: str, model: str = "gpt-4o-mini", n: int = 1) -> ChatComple
         ],
         n=n
     )
+    logging.info(f"Запрос к {completion.model} использовал {completion.usage.total_tokens} токенов")
     return completion.choices[0].message
