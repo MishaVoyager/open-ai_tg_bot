@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:13.3
+    env_file: ".env"
+    volumes:
+      - openai-data:/var/lib/postgresql/data
+    ports:
+      - "6989:6989"
+    expose:
+      - "6989"
+    restart: unless-stopped
+    command: -p 6989
+  server:
+    build: .
+    ports:
+      - 8080:8080
+    env_file: ".env"
+    depends_on:
+      - postgres
+volumes:
+  openai-data:
