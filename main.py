@@ -21,8 +21,7 @@ async def start_bot(token: str) -> None:
     dp.include_routers(search_handlers.router)
     await bot.set_my_commands(
         [
-            BotCommand(command="/settings", description="Изменить настройки запросов"),
-            BotCommand(command="/info", description="Узнать текущие настройки")
+            BotCommand(command="/settings", description="Изменить настройки запросов")
         ]
     )
     await bot.delete_webhook(drop_pending_updates=True)
@@ -36,7 +35,7 @@ async def main() -> None:
 
 if __name__ == "__main__":
     logging.basicConfig(
-        level=logging.DEBUG,
+        level=logging.INFO,
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
     )
     asyncio.run(main())
