@@ -18,9 +18,9 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
 from helpers.texthelper import get_word_ending
 
 
-async def get_file_from_tg(message: Message) -> BinaryIO:
+async def get_voice_from_tg(message: Message) -> BinaryIO:
     """Достает из сообщения файл и загружает его в память"""
-    original_file = await message.bot.get_file(message.document.file_id)
+    original_file = await message.bot.get_file(message.voice.file_id)
     in_memory_file = await message.bot.download(file=original_file)  # type: ignore
     in_memory_file.name = original_file.file_path
     return in_memory_file

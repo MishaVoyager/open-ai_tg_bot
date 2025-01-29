@@ -14,6 +14,7 @@ from service.visitor_actions import start_db_async
 async def start_bot(token: str) -> None:
     bot = Bot(token=token)
     dp = Dispatcher(storage=MemoryStorage())
+
     dp.message.outer_middleware(Auth())
     dp.callback_query.outer_middleware(Auth())
 

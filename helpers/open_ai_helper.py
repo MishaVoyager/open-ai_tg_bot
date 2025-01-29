@@ -1,5 +1,6 @@
 import logging
 from enum import StrEnum
+from typing import BinaryIO, Dict, Optional
 
 from openai import OpenAI
 from openai.types.chat import ChatCompletionMessage
@@ -24,7 +25,23 @@ def get_client():
     )
 
 
-def generate(content: str, model: str = "gpt-4o-mini", n: int = 1) -> ChatCompletionMessage:
+def get_english_teacher_comment(content: str, model: str = "gpt-4o-mini") -> ChatCompletionMessage:
+    prompt = """Ты очень полезный учитель английского. 
+    Вежливо объясни, как улучшить грамматику, лексику и естественность речи в этом тексте"""
+    developer_message = {"role": "developer", "content": prompt}
+    return generate(content, model, developer_message)
+
+
+def generate(
+        content: str,
+        model: str = "gpt-4o-mini",
+        developer_message: Optional[Dict] = None,
+        n: int = 1) -> ChatCompletionMessage:
+    messages = [
+        {"role": "user", "content": f"{content}"}
+    ]
+    if developer_message:
+        messages.append(developer_message)
     completion = get_client().chat.completions.create(
         model=model,
         store=True,
@@ -35,3 +52,34 @@ def generate(content: str, model: str = "gpt-4o-mini", n: int = 1) -> ChatComple
     )
     logging.info(f"Запрос к {completion.model} использовал {completion.usage.total_tokens} токенов")
     return completion.choices[0].message
+
+
+def transcript_by_gpt(temperature, system_prompt, audio_file):
+    completion = get_client().chat.completions.create(
+        model="gpt-4o",
+        temperature=temperature,
+        messages=[
+            {
+                "role": "system",
+                "content": system_prompt
+            },
+            {
+                "role": "user",
+                "content": transcribe(audio_file, "")
+            }
+        ]
+    )
+    return completion.choices[0].message.content
+
+
+def transcript_by_whisper(audio_file: BinaryIO):
+    transcription = get_client().audio.transcriptions.create(
+        model="whisper-1",
+        file=audio_file,
+        response_format="text"
+    )
+    return transcription
+
+
+def text_answer_to_audio():
+    pass
