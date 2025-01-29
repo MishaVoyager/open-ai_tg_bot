@@ -26,9 +26,9 @@ def get_client():
 
 
 def get_english_teacher_comment(content: str, model: str = "gpt-4o-mini") -> ChatCompletionMessage:
-    prompt = """Ты очень полезный учитель английского. 
-    Вежливо объясни, как улучшить грамматику, лексику и естественность речи в этом тексте"""
-    developer_message = {"role": "developer", "content": prompt}
+    prompt = """You are a helpful english teacher. 
+    Please help to improve grammar, vocabulary and naturalness of this speech"""
+    developer_message = {"role": "system", "content": prompt}
     return generate(content, model, developer_message)
 
 
@@ -45,9 +45,7 @@ def generate(
     completion = get_client().chat.completions.create(
         model=model,
         store=True,
-        messages=[
-            {"role": "user", "content": f"{content}"}
-        ],
+        messages=messages,
         n=n
     )
     logging.info(f"Запрос к {completion.model} использовал {completion.usage.total_tokens} токенов")
