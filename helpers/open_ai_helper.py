@@ -27,7 +27,9 @@ def get_client():
 
 def get_english_teacher_comment(content: str, model: str = "gpt-4o-mini") -> ChatCompletionMessage:
     prompt = """You are a helpful english teacher. 
-    Please help to improve grammar, vocabulary and naturalness of this speech"""
+    Please help to improve grammar, vocabulary and naturalness of this speech.
+    Make verbose comment about errors in this areas.
+    """
     developer_message = {"role": "system", "content": prompt}
     return generate(content, model, developer_message)
 
