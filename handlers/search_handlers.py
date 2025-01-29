@@ -9,7 +9,7 @@ from aiogram.types import Message, CallbackQuery
 from config.settings import CommonSettings
 from domain.models import Visitor
 from helpers import tghelper
-from helpers.open_ai_helper import Model, generate, transcript_by_whisper
+from helpers.open_ai_helper import Model, generate, transcript_by_whisper, get_english_teacher_comment
 from helpers.tghelper import get_inline_keyboard
 from service.visitor_actions import change_visitor_model
 
@@ -82,7 +82,7 @@ async def answer_audio_handler(message: Message, visitor: Visitor) -> None:
     in_memory_file = await tghelper.get_voice_from_tg(message)
     transcript = transcript_by_whisper(in_memory_file)
     await message.answer(f"Транскрипт вашего аудио: \n\n{transcript}")
-    result = generate(transcript, visitor.model)
+    result = get_english_teacher_comment(transcript, visitor.model)
     if result.refusal:
         await message.answer(result.refusal, parse_mode=ParseMode.MARKDOWN)
     else:
