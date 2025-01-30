@@ -6,7 +6,7 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.types import BotCommand
 
 from config.settings import CommonSettings
-from handlers import search_handlers, admin_handlers
+from handlers import search_handlers, admin_handlers, cancel_handlers
 from middlware.auth_middleware import Auth
 from service.visitor_actions import start_db_async
 
@@ -17,9 +17,7 @@ async def start_bot(token: str) -> None:
 
     dp.message.outer_middleware(Auth())
     dp.callback_query.outer_middleware(Auth())
-
-    dp.include_routers(admin_handlers.router)
-    dp.include_routers(search_handlers.router)
+    dp.include_routers(cancel_handlers.router, admin_handlers.router, search_handlers.router)
     await bot.set_my_commands(
         [
             BotCommand(command="/settings", description="Изменить настройки запросов")

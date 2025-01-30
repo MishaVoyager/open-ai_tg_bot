@@ -25,6 +25,23 @@ def get_client():
     )
 
 
+def convert_text_to_audio_bytes(text: str, response_format="mp3"):
+    response = get_client().audio.speech.create(
+        model="tts-1",
+        voice="alloy",
+        input=text,
+        response_format=response_format
+    )
+    return response.read()
+
+
+def continue_dialog(content: str, model: str = "gpt-4o-mini") -> ChatCompletionMessage:
+    # we want to discuss certain topic: {topic}
+    prompt = """You are an american man. We are friends. We are in a friendly dialogue."""
+    developer_message = {"role": "system", "content": prompt}
+    return generate(content, model, developer_message)
+
+
 def get_english_teacher_comment(content: str, model: str = "gpt-4o-mini") -> ChatCompletionMessage:
     prompt = """You are a helpful english teacher. 
     Please help to improve grammar, vocabulary and naturalness of this speech.
@@ -54,22 +71,22 @@ def generate(
     return completion.choices[0].message
 
 
-def transcript_by_gpt(temperature, system_prompt, audio_file):
-    completion = get_client().chat.completions.create(
-        model="gpt-4o",
-        temperature=temperature,
-        messages=[
-            {
-                "role": "system",
-                "content": system_prompt
-            },
-            {
-                "role": "user",
-                "content": transcribe(audio_file, "")
-            }
-        ]
-    )
-    return completion.choices[0].message.content
+# def transcript_by_gpt(temperature, system_prompt, audio_file):
+#     completion = get_client().chat.completions.create(
+#         model="gpt-4o",
+#         temperature=temperature,
+#         messages=[
+#             {
+#                 "role": "system",
+#                 "content": system_prompt
+#             },
+#             {
+#                 "role": "user",
+#                 "content": transcribe(audio_file, "")
+#             }
+#         ]
+#     )
+#     return completion.choices[0].message.content
 
 
 def transcript_by_whisper(audio_file: BinaryIO):
