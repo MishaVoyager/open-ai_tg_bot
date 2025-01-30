@@ -27,11 +27,17 @@ class Teacher(StatesGroup):
     monolog = State()
 
 
-@router.message(Command("start"))
+@router.message(Command("start", "help"))
 async def start_handler(message: Message) -> None:
     text = """Бот для запросов в OpenAI к вашим услугам! 
-По умолчанию выбрана модель gpt-4o-mini. 
-Ее можно изменить: /settings
+Базовый режим - обычные запросы текстом и голосом. 
+
+Команды:
+/settings для изменения модели (по умолчанию - gpt-4o-mini)
+/dialog для дружеских бесед на любые темы, текстом и голосом
+/teacher для улучшения устной и письменной речи
+/cancel для возврата в базовый режим
+/help для вызова подсказки по командам
 """
     await message.answer(text)
 
