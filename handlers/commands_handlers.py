@@ -63,7 +63,8 @@ async def choose_model_handler(call: CallbackQuery, match: Match[str]) -> None:
 
 @router.message(Command("dialog"))
 async def start_dialog_handler(message: Message, state: FSMContext) -> None:
-    await message.answer("Включен режим диалога! Записывайте аудио - и бот тоже будет отвечать голосом")
+    text = "Включен режим диалога! Отправляете аудио - бот отвечает голосом, отправляете текст - бот отвечает текстом"
+    await message.answer(text)
     await state.set_state(Dialog.conversation)
 
 
@@ -86,8 +87,15 @@ async def continue_dialog_audio_handler(message: Message, visitor: Visitor) -> N
 
 
 @router.message(Dialog.conversation, F.content_type.in_({'text'}))
-async def continue_dialog_text_handler(message: Message) -> None:
-    await message.answer("Пришлите аудио! Если хотите закончить, выберите /cancel")
+async def continue_dialog_text_handler(message: Message, visitor: Visitor) -> None:
+    if CommonSettings().DRY_MODE:
+        await message.answer("Бот запущен в тестовом режиме. Запросы к OpenAI временно не выполняются")
+        return
+    result = continue_dialog(message.text, visitor.model)
+    if result.refusal:
+        await message.answer(result.refusal, parse_mode=ParseMode.MARKDOWN)
+    else:
+        await message.answer(result.content, parse_mode=ParseMode.MARKDOWN)
 
 
 @router.message(Command("teacher"))
@@ -114,5 +122,12 @@ async def feedback_audio_handler(message: Message, visitor: Visitor) -> None:
 
 
 @router.message(Teacher.monolog, F.content_type.in_({'text'}))
-async def feedback_text_handler(message: Message) -> None:
-    await message.answer("Пришлите аудио! Если хотите закончить, выберите /cancel")
+async def feedback_text_handler(message: Message, visitor: Visitor) -> None:
+    if CommonSettings().DRY_MODE:
+        await message.answer("Бот запущен в тестовом режиме. Запросы к OpenAI временно не выполняются")
+        return
+    result = get_english_teacher_comment(message.text, visitor.model)
+    if result.refusal:
+        await message.answer(result.refusal, parse_mode=ParseMode.MARKDOWN)
+    else:
+        await message.answer(f"Коммент учителя английского: \n\n{result.content}", parse_mode=ParseMode.MARKDOWN)
