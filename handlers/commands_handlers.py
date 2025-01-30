@@ -11,7 +11,8 @@ from aiogram.types import Message, CallbackQuery, BufferedInputFile
 from config.settings import CommonSettings
 from domain.models import Visitor
 from helpers import tghelper
-from helpers.open_ai_helper import Model, transcript_by_whisper, convert_text_to_audio_bytes, continue_dialog
+from helpers.open_ai_helper import Model, transcript_by_whisper, convert_text_to_audio_bytes, continue_dialog, \
+    get_english_teacher_comment
 from helpers.tghelper import get_inline_keyboard
 from service.visitor_actions import change_visitor_model
 
@@ -20,6 +21,10 @@ router = Router()
 
 class Dialog(StatesGroup):
     conversation = State()
+
+
+class Teacher(StatesGroup):
+    monolog = State()
 
 
 @router.message(Command("start"))
@@ -82,4 +87,32 @@ async def continue_dialog_audio_handler(message: Message, visitor: Visitor) -> N
 
 @router.message(Dialog.conversation, F.content_type.in_({'text'}))
 async def continue_dialog_text_handler(message: Message) -> None:
-    await message.answer("Пришлите аудио! Если хотите завершить диалог, выберите /cancel")
+    await message.answer("Пришлите аудио! Если хотите закончить, выберите /cancel")
+
+
+@router.message(Command("teacher"))
+async def start_monolog_handler(message: Message, state: FSMContext) -> None:
+    text = """Включен режим обучения! 
+Записывайте аудио - и учитель будет предлагать, как сделать речь правильней и естественней"""
+    await message.answer(text)
+    await state.set_state(Teacher.monolog)
+
+
+@router.message(Teacher.monolog, F.content_type.in_({'voice'}))
+async def feedback_audio_handler(message: Message, visitor: Visitor) -> None:
+    if CommonSettings().DRY_MODE:
+        await message.answer("Бот запущен в тестовом режиме. Запросы к OpenAI временно не выполняются")
+        return
+    in_memory_file = await tghelper.get_voice_from_tg(message)
+    transcript = transcript_by_whisper(in_memory_file)
+    await message.answer(f"Транскрипт вашего аудио: \n\n{transcript}")
+    result = get_english_teacher_comment(transcript, visitor.model)
+    if result.refusal:
+        await message.answer(result.refusal, parse_mode=ParseMode.MARKDOWN)
+    else:
+        await message.answer(f"Коммент учителя английского: \n\n{result.content}", parse_mode=ParseMode.MARKDOWN)
+
+
+@router.message(Teacher.monolog, F.content_type.in_({'text'}))
+async def feedback_text_handler(message: Message) -> None:
+    await message.answer("Пришлите аудио! Если хотите закончить, выберите /cancel")
