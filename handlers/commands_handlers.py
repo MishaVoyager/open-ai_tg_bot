@@ -74,7 +74,6 @@ async def continue_dialog_audio_handler(message: Message, visitor: Visitor) -> N
     if result.refusal:
         await message.answer(result.refusal, parse_mode=ParseMode.MARKDOWN)
     else:
-        await message.answer(f"Собеседник: \n\n{result.content}", parse_mode=ParseMode.MARKDOWN)
         audio = convert_text_to_audio_bytes(result.content)
         file_name = f"english{datetime.datetime.now().strftime(r'%H_%M_%S')}.mp3"
         input_file = BufferedInputFile(audio, file_name)
@@ -82,5 +81,5 @@ async def continue_dialog_audio_handler(message: Message, visitor: Visitor) -> N
 
 
 @router.message(Dialog.conversation, F.content_type.in_({'text'}))
-async def continue_dialog_text_handler(message: Message, visitor: Visitor) -> None:
+async def continue_dialog_text_handler(message: Message) -> None:
     await message.answer("Пришлите аудио! Если хотите завершить диалог, выберите /cancel")

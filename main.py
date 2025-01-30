@@ -26,7 +26,8 @@ async def start_bot(token: str) -> None:
     )
     await bot.set_my_commands(
         [
-            BotCommand(command="/settings", description="Изменить настройки запросов")
+            BotCommand(command="/settings", description="Изменить настройки запросов"),
+            BotCommand(command="/dialog", description="Начать аудиодиалог")
         ]
     )
     await bot.delete_webhook(drop_pending_updates=True)
