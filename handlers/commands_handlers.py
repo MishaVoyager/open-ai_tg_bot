@@ -63,7 +63,7 @@ async def choose_model_handler(call: CallbackQuery, match: Match[str]) -> None:
 
 @router.message(Command("dialog"))
 async def start_dialog_handler(message: Message, state: FSMContext) -> None:
-    text = "Включен режим диалога! Отправляете аудио - бот отвечает голосом, отправляете текст - бот отвечает текстом"
+    text = "Включен режим диалога! Болтайте с ботом голосовыми или текстом - он будет отвечать тем же способом"
     await message.answer(text)
     await state.set_state(Dialog.conversation)
 
@@ -101,7 +101,7 @@ async def continue_dialog_text_handler(message: Message, visitor: Visitor) -> No
 @router.message(Command("teacher"))
 async def start_monolog_handler(message: Message, state: FSMContext) -> None:
     text = """Включен режим обучения! 
-Записывайте аудио - и учитель будет предлагать, как сделать речь правильней и естественней"""
+Присылайте текст или аудио - и учитель будет предлагать, как сделать речь правильней и естественней"""
     await message.answer(text)
     await state.set_state(Teacher.monolog)
 
