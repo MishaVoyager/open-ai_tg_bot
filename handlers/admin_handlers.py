@@ -14,7 +14,7 @@ router.message.middleware(Authorize())
 router.callback_query.middleware(Authorize())
 
 
-def format_visitors(visitors: List[Visitor]):
+def format_visitors(visitors: List[Visitor]) -> str:
     result = "Список пользователей:\n\n"
     for visitor in visitors:
         result += f"{str(visitor)}\n/allow{visitor.chat_id}\n/decline{visitor.chat_id}\n\n"

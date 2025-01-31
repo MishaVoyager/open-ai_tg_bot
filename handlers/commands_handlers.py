@@ -1,4 +1,4 @@
-import datetime
+import base64
 from re import Match
 
 from aiogram import Router, F
@@ -6,25 +6,23 @@ from aiogram.enums import ParseMode
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
-from aiogram.types import Message, CallbackQuery, BufferedInputFile
+from aiogram.types import Message, CallbackQuery
 
 from config.settings import CommonSettings
 from domain.models import Visitor
 from helpers import tghelper
-from helpers.open_ai_helper import Model, transcript_by_whisper, convert_text_to_audio_bytes, continue_dialog, \
-    get_english_teacher_comment
-from helpers.tghelper import get_inline_keyboard
+from helpers.open_ai_helper import GPTModel, audio_to_text, text_to_audio, get_answer_from_friend, \
+    get_english_teacher_comment, generate_image
+from helpers.tghelper import get_inline_keyboard, get_random_processing_phrase, process_file_for_tg
 from service.visitor_actions import change_visitor_model
 
 router = Router()
 
 
-class Dialog(StatesGroup):
+class Modes(StatesGroup):
     conversation = State()
-
-
-class Teacher(StatesGroup):
     monolog = State()
+    images = State()
 
 
 @router.message(Command("start", "help"))
@@ -33,10 +31,12 @@ async def start_handler(message: Message) -> None:
 Базовый режим - обычные запросы текстом и голосом. 
 
 Команды:
-/settings для изменения модели (по умолчанию - gpt-4o-mini)
+
 /dialog для дружеских бесед на любые темы, текстом и голосом
 /teacher для улучшения устной и письменной речи
+/images для режима генерации изображений
 /cancel для возврата в базовый режим
+/settings для изменения модели (по умолчанию - gpt-4o-mini)
 /help для вызова подсказки по командам
 """
     await message.answer(text)
@@ -44,7 +44,7 @@ async def start_handler(message: Message) -> None:
 
 @router.message(Command("settings"))
 async def settings_handler(message: Message, visitor: Visitor) -> None:
-    options = list(Model) + ["Отмена"]
+    options = list(GPTModel) + ["Отмена"]
     keyboard = get_inline_keyboard(options, "model")
     text = f"""Ваша текущая модель: {visitor.model}.\n 
 Какую выберете вместо нее?
@@ -59,11 +59,11 @@ async def settings_handler(message: Message, visitor: Visitor) -> None:
 async def choose_model_handler(call: CallbackQuery, match: Match[str]) -> None:
     await call.answer()
     if match.group(1) == "Отмена":
-        await call.message.answer("Вы отменили действие")
+        await call.message.answer("Вы отменили действие")  # type: ignore
     else:
-        model = Model(match.group(1))
+        model = GPTModel(match.group(1))
         await change_visitor_model(call.message.chat.id, model)
-        await call.message.answer(f"Вы изменили модель на {model}")
+        await call.message.answer(f"Вы изменили модель на {model}")  # type: ignore
     await call.message.delete()
 
 
@@ -71,33 +71,32 @@ async def choose_model_handler(call: CallbackQuery, match: Match[str]) -> None:
 async def start_dialog_handler(message: Message, state: FSMContext) -> None:
     text = "Включен режим диалога! Болтайте с ботом голосовыми или текстом - он будет отвечать тем же способом"
     await message.answer(text)
-    await state.set_state(Dialog.conversation)
+    await state.set_state(Modes.conversation)
 
 
-@router.message(Dialog.conversation, F.content_type.in_({'voice'}))
+@router.message(Modes.conversation, F.content_type.in_({'voice'}))
 async def continue_dialog_audio_handler(message: Message, visitor: Visitor) -> None:
     if CommonSettings().DRY_MODE:
         await message.answer("Бот запущен в тестовом режиме. Запросы к OpenAI временно не выполняются")
         return
     in_memory_file = await tghelper.get_voice_from_tg(message)
-    transcript = transcript_by_whisper(in_memory_file)
+    transcript = audio_to_text(in_memory_file)
     await message.answer(f"Транскрипт вашего аудио: \n\n{transcript}")
-    result = continue_dialog(transcript, visitor.model)
+    result = get_answer_from_friend(transcript, visitor.model)
     if result.refusal:
         await message.answer(result.refusal, parse_mode=ParseMode.MARKDOWN)
     else:
-        audio = convert_text_to_audio_bytes(result.content)
-        file_name = f"english{datetime.datetime.now().strftime(r'%H_%M_%S')}.mp3"
-        input_file = BufferedInputFile(audio, file_name)
-        await message.reply_document(input_file)
+        audio = text_to_audio(result.content)
+        tg_file = process_file_for_tg(audio, "mp3")
+        await message.reply_document(tg_file)
 
 
-@router.message(Dialog.conversation, F.content_type.in_({'text'}))
+@router.message(Modes.conversation, F.content_type.in_({'text'}))
 async def continue_dialog_text_handler(message: Message, visitor: Visitor) -> None:
     if CommonSettings().DRY_MODE:
         await message.answer("Бот запущен в тестовом режиме. Запросы к OpenAI временно не выполняются")
         return
-    result = continue_dialog(message.text, visitor.model)
+    result = get_answer_from_friend(message.text, visitor.model)
     if result.refusal:
         await message.answer(result.refusal, parse_mode=ParseMode.MARKDOWN)
     else:
@@ -109,16 +108,16 @@ async def start_monolog_handler(message: Message, state: FSMContext) -> None:
     text = """Включен режим обучения! 
 Присылайте текст или аудио - и учитель будет предлагать, как сделать речь правильней и естественней"""
     await message.answer(text)
-    await state.set_state(Teacher.monolog)
+    await state.set_state(Modes.monolog)
 
 
-@router.message(Teacher.monolog, F.content_type.in_({'voice'}))
+@router.message(Modes.monolog, F.content_type.in_({'voice'}))
 async def feedback_audio_handler(message: Message, visitor: Visitor) -> None:
     if CommonSettings().DRY_MODE:
         await message.answer("Бот запущен в тестовом режиме. Запросы к OpenAI временно не выполняются")
         return
     in_memory_file = await tghelper.get_voice_from_tg(message)
-    transcript = transcript_by_whisper(in_memory_file)
+    transcript = audio_to_text(in_memory_file)
     await message.answer(f"Транскрипт вашего аудио: \n\n{transcript}")
     result = get_english_teacher_comment(transcript, visitor.model)
     if result.refusal:
@@ -127,7 +126,7 @@ async def feedback_audio_handler(message: Message, visitor: Visitor) -> None:
         await message.answer(f"Коммент учителя английского: \n\n{result.content}", parse_mode=ParseMode.MARKDOWN)
 
 
-@router.message(Teacher.monolog, F.content_type.in_({'text'}))
+@router.message(Modes.monolog, F.content_type.in_({'text'}))
 async def feedback_text_handler(message: Message, visitor: Visitor) -> None:
     if CommonSettings().DRY_MODE:
         await message.answer("Бот запущен в тестовом режиме. Запросы к OpenAI временно не выполняются")
@@ -137,3 +136,24 @@ async def feedback_text_handler(message: Message, visitor: Visitor) -> None:
         await message.answer(result.refusal, parse_mode=ParseMode.MARKDOWN)
     else:
         await message.answer(f"Коммент учителя английского: \n\n{result.content}", parse_mode=ParseMode.MARKDOWN)
+
+
+@router.message(Command("images"))
+async def start_images_handler(message: Message, state: FSMContext) -> None:
+    await message.answer("Включен режим генерации изображений!")
+    await state.set_state(Modes.images)
+
+
+@router.message(Modes.images, F.content_type.in_({'text'}))
+async def gen_image_handler(message: Message) -> None:
+    if CommonSettings().DRY_MODE:
+        await message.answer("Бот запущен в тестовом режиме. Запросы к OpenAI временно не выполняются")
+        return
+    await message.answer(get_random_processing_phrase())
+    image = generate_image(message.text)
+    if not image:
+        await message.answer("Не удалось сгенерировать изображение, попробуйте снова", parse_mode=ParseMode.MARKDOWN)
+    else:
+        image_bytes = base64.b64decode(image)
+        tg_file = process_file_for_tg(image_bytes, "png")  # type: ignore
+        await message.reply_document(tg_file)

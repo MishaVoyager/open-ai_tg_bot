@@ -7,15 +7,35 @@ Paginator
     Дает список объектов на определенной странице и соответствующую инлайн-клавиатуру.
     Методы класса неплохо покрыты тестами.
 """
-
+import datetime
 import math
+import random
 from typing import Optional, BinaryIO
 
 from aiogram import types
-from aiogram.types import ReplyKeyboardMarkup, InlineKeyboardMarkup, Message
+from aiogram.types import ReplyKeyboardMarkup, InlineKeyboardMarkup, Message, BufferedInputFile
 from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
 
 from helpers.texthelper import get_word_ending
+
+THINKING_PHRASES = [
+    "Запрос обрабатывается...",
+    "Секундочку...",
+    "Я не зависла, просто стараюсь получше ответить...",
+    "Мысли медленно крутятся в моей голове...",
+    "Я размышляю о вашем запросе, подождите немножко, пожалуйста...",
+    "Ожиданье - самый скучный повод...",
+    "Это будет леген... подожди-подожди..."
+]
+
+
+def process_file_for_tg(file: BinaryIO, format: str) -> BufferedInputFile:
+    file_name = f"{datetime.datetime.now().strftime(r'%H_%M_%S')}.{format}"
+    return BufferedInputFile(file, file_name)  # type: ignore
+
+
+def get_random_processing_phrase() -> str:
+    return random.choice(THINKING_PHRASES)
 
 
 async def get_voice_from_tg(message: Message) -> BinaryIO:

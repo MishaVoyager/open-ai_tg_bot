@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, Asyn
 
 from config.settings import PGSettings
 from domain.models import Base, Visitor, Status
-from helpers.open_ai_helper import Model
+from helpers.open_ai_helper import GPTModel
 
 
 async def add_visitor(visitor: Visitor) -> None:
@@ -44,7 +44,7 @@ async def change_visitor_status(chat_id: int, status: Status):
         await session.commit()
 
 
-async def change_visitor_model(chat_id: int, model: Model):
+async def change_visitor_model(chat_id: int, model: GPTModel):
     factory = get_session_factory()
     async with factory() as session:
         visitor = await session.get(Visitor, chat_id)

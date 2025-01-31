@@ -28,6 +28,7 @@ async def start_bot(token: str) -> None:
         [
             BotCommand(command="/dialog", description="Режим диалога"),
             BotCommand(command="/teacher", description="Режим обучения"),
+            BotCommand(command="/images", description="Создание изображений"),
             BotCommand(command="/cancel", description="Выйти из текущего режима"),
             BotCommand(command="/settings", description="Изменить настройки запросов")
         ]
