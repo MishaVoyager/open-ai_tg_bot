@@ -49,14 +49,15 @@ def text_to_audio(text: str, response_format: str = "mp3") -> BinaryIO:
     return response.read()  # type: ignore
 
 
-def generate_image(prompt: str, model: str = "dall-e-2", size: str = "1024x1024") -> Optional[str]:
+def generate_image(prompt: str, model: str = "dall-e-3", size: str = "1792x1024") -> Optional[str]:
     response = get_client().images.generate(
         model=model,
         prompt=prompt,
         size=size,  # type: ignore
         quality="standard",
         n=1,
-        response_format="b64_json"
+        response_format="b64_json",
+        style="vivid"
     )
     return response.data[0].b64_json
 

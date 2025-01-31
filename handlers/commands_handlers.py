@@ -156,4 +156,4 @@ async def gen_image_handler(message: Message) -> None:
     else:
         image_bytes = base64.b64decode(image)
         tg_file = process_file_for_tg(image_bytes, "png")  # type: ignore
-        await message.reply_document(tg_file)
+        await message.reply_photo(tg_file)
