@@ -20,8 +20,9 @@ router.callback_query.middleware(DryMode())
 
 @router.message(StateFilter(None), F.content_type.in_({'text'}))
 async def search_text_handler(message: Message, visitor: Visitor) -> None:
-    await message.answer(get_random_processing_phrase())
+    tmp_message = await message.answer(get_random_processing_phrase())
     result = generate_text(message.text, visitor.model)
+    await tmp_message.delete()
     if result.refusal:
         await message.answer(result.refusal, parse_mode=ParseMode.MARKDOWN)
     else:
@@ -33,8 +34,9 @@ async def search_audio_handler(message: Message, visitor: Visitor) -> None:
     in_memory_file = await tghelper.get_voice_from_tg(message)
     transcript = audio_to_text(in_memory_file)
     await message.answer(f"Транскрипт вашего аудио: \n\n{transcript}")
-    await message.answer(get_random_processing_phrase())
+    tmp_message = await message.answer(get_random_processing_phrase())
     result = generate_text(transcript, visitor.model)
+    await tmp_message.delete()
     if result.refusal:
         await message.answer(result.refusal, parse_mode=ParseMode.MARKDOWN)
     else:
@@ -87,8 +89,9 @@ async def feedback_text_handler(message: Message, visitor: Visitor) -> None:
 
 @router.message(Modes.images, F.content_type.in_({'text'}))
 async def gen_image_handler(message: Message) -> None:
-    await message.answer(get_random_processing_phrase())
+    tmp_message = await message.answer(get_random_processing_phrase())
     image = generate_image(message.text)
+    await tmp_message.delete()
     if not image:
         await message.answer("Не удалось сгенерировать изображение, попробуйте снова", parse_mode=ParseMode.MARKDOWN)
     else:

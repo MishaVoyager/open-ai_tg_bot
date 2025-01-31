@@ -29,8 +29,8 @@ THINKING_PHRASES = [
 ]
 
 
-def process_file_for_tg(file: BinaryIO, format: str) -> BufferedInputFile:
-    file_name = f"{datetime.datetime.now().strftime(r'%H_%M_%S')}.{format}"
+def process_file_for_tg(file: BinaryIO, file_format: str) -> BufferedInputFile:
+    file_name = f"{datetime.datetime.now().strftime(r'%H_%M_%S')}.{file_format}"
     return BufferedInputFile(file, file_name)  # type: ignore
 
 
@@ -42,7 +42,7 @@ async def get_voice_from_tg(message: Message) -> BinaryIO:
     """Достает из сообщения файл и загружает его в память"""
     original_file = await message.bot.get_file(message.voice.file_id)
     in_memory_file = await message.bot.download(file=original_file)  # type: ignore
-    in_memory_file.name = original_file.file_path
+    in_memory_file.name = original_file.file_path  # type: ignore
     return in_memory_file
 
 
