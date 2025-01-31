@@ -57,7 +57,7 @@ def generate_image(prompt: str, model: str = "dall-e-3", size: str = "1792x1024"
         quality="standard",
         n=1,
         response_format="b64_json",
-        style="vivid"
+        style="natural"
     )
     return response.data[0].b64_json
 
