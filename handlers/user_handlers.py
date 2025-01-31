@@ -1,5 +1,3 @@
-import base64
-
 from aiogram import Router, F
 from aiogram.enums import ParseMode
 from aiogram.filters import StateFilter
@@ -9,7 +7,7 @@ from domain.models import Visitor
 from handlers.commands_handlers import Modes
 from helpers import tghelper
 from helpers.open_ai_helper import generate_text, audio_to_text, get_answer_from_friend, text_to_audio, \
-    get_english_teacher_comment, generate_image
+    get_english_teacher_comment
 from helpers.tghelper import get_random_processing_phrase, process_file_for_tg
 from middlware.dry_mode_middlware import DryMode
 
@@ -85,16 +83,3 @@ async def feedback_text_handler(message: Message, visitor: Visitor) -> None:
         await message.answer(result.refusal, parse_mode=ParseMode.MARKDOWN)
     else:
         await message.answer(f"Коммент учителя английского: \n\n{result.content}", parse_mode=ParseMode.MARKDOWN)
-
-
-@router.message(Modes.images, F.content_type.in_({'text'}))
-async def gen_image_handler(message: Message) -> None:
-    tmp_message = await message.answer(get_random_processing_phrase())
-    image = generate_image(message.text)
-    await tmp_message.delete()
-    if not image:
-        await message.answer("Не удалось сгенерировать изображение, попробуйте снова", parse_mode=ParseMode.MARKDOWN)
-    else:
-        image_bytes = base64.b64decode(image)
-        tg_file = process_file_for_tg(image_bytes, "png")  # type: ignore
-        await message.reply_photo(tg_file)

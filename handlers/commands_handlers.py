@@ -17,7 +17,6 @@ router = Router()
 class Modes(StatesGroup):
     conversation = State()
     monolog = State()
-    images = State()
 
 
 @router.message(Command("start", "help"))
@@ -29,7 +28,6 @@ async def start_handler(message: Message) -> None:
 
 /dialog для дружеских бесед на любые темы, текстом и голосом
 /teacher для улучшения устной и письменной речи
-/images для режима генерации изображений
 /cancel для возврата в базовый режим
 /settings для изменения модели (по умолчанию - gpt-4o-mini)
 /help для вызова подсказки по командам
@@ -75,9 +73,3 @@ async def start_monolog_handler(message: Message, state: FSMContext) -> None:
 Присылайте текст или аудио - и учитель будет предлагать, как сделать речь правильней и естественней"""
     await message.answer(text)
     await state.set_state(Modes.monolog)
-
-
-@router.message(Command("images"))
-async def start_images_handler(message: Message, state: FSMContext) -> None:
-    await message.answer("Включен режим генерации изображений!")
-    await state.set_state(Modes.images)
