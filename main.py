@@ -6,7 +6,7 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.types import BotCommand
 
 from config.settings import CommonSettings
-from handlers import search_handlers, admin_handlers, cancel_handlers, commands_handlers
+from handlers import user_handlers, admin_handlers, cancel_handlers, commands_handlers
 from middlware.auth_middleware import Auth
 from service.visitor_actions import start_db_async
 
@@ -21,8 +21,8 @@ async def start_bot(token: str) -> None:
         cancel_handlers.router,
         admin_handlers.router,
         commands_handlers.router,
-        # Search должен идти последним, т.к. ловит любой текст
-        search_handlers.router
+        # должен идти последним, т.к. ловит любой текст:
+        user_handlers.router
     )
     await bot.set_my_commands(
         [
