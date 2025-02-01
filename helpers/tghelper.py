@@ -13,6 +13,7 @@ import random
 from typing import Optional, BinaryIO
 
 from aiogram import types
+from aiogram.enums import ParseMode
 from aiogram.types import ReplyKeyboardMarkup, InlineKeyboardMarkup, Message, BufferedInputFile
 from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
 
@@ -27,6 +28,11 @@ THINKING_PHRASES = [
     "Ожиданье - самый скучный повод...",
     "Это будет леген... подожди-подожди..."
 ]
+
+
+async def send_text_any_size(message: Message, text: str, mode: ParseMode = ParseMode.MARKDOWN) -> None:
+    for x in range(0, len(text), 4096):
+        await message.answer(text=text[x:x + 4096], parse_mode=mode)
 
 
 def process_file_for_tg(file: BinaryIO, file_format: str) -> BufferedInputFile:
