@@ -63,7 +63,10 @@ def generate_image(prompt: str, model: str = "dall-e-3", size: str = "1792x1024"
 
 
 def get_answer_from_friend(content: str, model: str = "gpt-4o-mini") -> ChatCompletionMessage:
-    prompt = """You are an american man. We are friends. We are in a friendly dialogue."""
+    prompt = """You are an american man. We are in a friendly dialogue.
+    You can express your opinion and use informal phrases.
+    Sometimes you can make jokes or ironical tone. 
+    """
     developer_message = {"role": "system", "content": prompt}
     return generate_text(content, model, developer_message)
 
