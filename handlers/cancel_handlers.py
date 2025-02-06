@@ -18,6 +18,6 @@ router = Router()
 async def cancel_handler(message: Message, state: FSMContext) -> None:
     current_state = await state.get_state()
     if not current_state:
-        return
+        await message.answer("Уже включен основной режим, режим поиска", reply_markup=ReplyKeyboardRemove())
     await state.clear()
-    await message.answer("Вы отменили действие", reply_markup=ReplyKeyboardRemove())
+    await message.answer("Вы вернулись в основной режим, режим поиска", reply_markup=ReplyKeyboardRemove())
