@@ -43,8 +43,10 @@ async def settings_handler(message: Message, visitor: Visitor) -> None:
 Какую выберете вместо нее?
 - gpt-4o-mini - быстрая и дешевая
 - gpt-4o - средний вариант
-- gpt-o1 - думающая, долгая и умная
-- gpt-o1-mini - ее облегченная версия"""
+- o1 - думающая, долгая и умная
+- o1-mini - ее облегченная версия
+- o3-mini - недорогая думающая модель
+"""
     await message.answer(text, reply_markup=keyboard)
 
 

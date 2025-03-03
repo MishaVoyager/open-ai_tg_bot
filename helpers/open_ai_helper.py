@@ -9,6 +9,7 @@ from config.settings import CommonSettings
 
 token = CommonSettings().OPENAI_API_KEY
 
+# TODO сделать класс, в котором будут вынесены общие элементы
 
 def generate_text(
         content: str,
@@ -20,11 +21,13 @@ def generate_text(
     ]
     if developer_message:
         messages.append(developer_message)
+    reasoning_effort = "high" if model == "o3-mini" else None
     completion = get_client().chat.completions.create(
         model=model,
         store=True,
         messages=messages,  # type: ignore
-        n=n
+        n=n,
+        reasoning_effort=reasoning_effort
     )
     logging.info(f"Запрос к {completion.model} использовал {completion.usage.total_tokens} токенов")
     return completion.choices[0].message
@@ -107,6 +110,7 @@ class GPTModel(StrEnum):
     gpt_4o_mini = "gpt-4o-mini"
     o1_mini = "o1-mini"
     o1_preview = "o1-preview"
+    o3_mini = "o3-mini"
 
 
 def get_client() -> OpenAI:
