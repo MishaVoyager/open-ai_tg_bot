@@ -45,8 +45,8 @@ async def settings_handler(message: Message, visitor: Visitor) -> None:
 - gpt-4o - средний вариант
 - o1 - думающая, долгая и умная
 - o1-mini - ее облегченная версия
-- o3-mini - недорогая думающая модель
 """
+    # - o3-mini - недорогая думающая модель
     await message.answer(text, reply_markup=keyboard)
 
 
