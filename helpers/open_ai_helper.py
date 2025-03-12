@@ -116,7 +116,7 @@ class GPTModel(StrEnum):
     gpt_4o_mini = "gpt-4o-mini"
     o1_mini = "o1-mini"
     o1_preview = "o1-preview"
-    # o3_mini = "o3-mini"
+    o3_mini = "o3-mini"
 
 
 def get_client() -> OpenAI:
