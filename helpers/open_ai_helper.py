@@ -28,6 +28,9 @@ def generate_text(
         n=n
     )
     if model == "o3-mini":
+        messages.append(
+            {"role": "system", "content": "Formatting re-enabled"}
+        )
         completion = get_client().chat.completions.create(
             model=model,
             store=True,
