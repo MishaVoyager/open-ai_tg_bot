@@ -8,6 +8,7 @@ Paginator
     Методы класса неплохо покрыты тестами.
 """
 import datetime
+import logging
 import math
 import random
 from typing import Optional, BinaryIO
@@ -31,13 +32,20 @@ THINKING_PHRASES = [
 ]
 
 
-async def send_text_any_size(message: Message, text: str, mode: ParseMode = ParseMode.MARKDOWN) -> None:
+async def send_text_any_size(message: Message, text: str) -> None:
     for x in range(0, len(text), 4096):
         answer = text[x:x + 4096]
+        logging.info(f"Запрос: \n{answer}")
         try:
-            await message.answer(answer, parse_mode=mode)
+            await message.answer(answer, parse_mode=ParseMode.MARKDOWN)
+            logging.info("Сообщение отправлено в формате MARKDOWN")
         except TelegramBadRequest:
-            await message.answer(answer)
+            logging.warning("Не удалось отправить сообщение в формате MARKDOWN")
+            try:
+                await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
+            except TelegramBadRequest:
+                logging.warning("Не удалось отправить сообщение в формате MARKDOWN_V2")
+                await message.answer(answer)
 
 
 def process_file_for_tg(file: BinaryIO, file_format: str) -> BufferedInputFile:

@@ -22,7 +22,6 @@ async def search_text_handler(message: Message, visitor: Visitor) -> None:
     result = generate_text(message.text, visitor.model)
     await tmp_message.delete()
     text = result.refusal if result.refusal else result.content
-    print(text)
     await send_text_any_size(message, text)
 
 
