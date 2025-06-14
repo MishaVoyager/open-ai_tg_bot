@@ -115,11 +115,14 @@ def improve_transcript_by_gpt(transcript: str) -> str:
 
 
 class GPTModel(StrEnum):
-    gpt_4o = "gpt-4o"
     gpt_4o_mini = "gpt-4o-mini"
-    o1_mini = "o1-mini"
-    o1_preview = "o1-preview"
+    gpt_41_mini = "gpt_4.1_mini"
+    gpt_41_nano = "gpt_4.1_nano"
     o3_mini = "o3-mini"
+    o4_mini = "o4-mini"
+    o3 = "o3"
+    o3_pro = "o3-pro-2025-06-10"
+
 
 
 def get_client() -> OpenAI:

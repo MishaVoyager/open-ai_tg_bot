@@ -1,0 +1,37 @@
+[
+  {
+    "name": "gpt-4o-mini",
+    "short_name": "gpt-4o-mini",
+    "description": "дешевая и быстрая"
+  },
+  {
+    "name": "gpt-4.1-mini",
+    "short_name": "gpt_4.1_mini",
+    "description": "дешевая и быстрая NEW"
+  },
+  {
+    "name": "gpt-4.1-nano",
+    "short_name": "gpt_4.1_nano",
+    "description": "самая быстрая"
+  },
+  {
+    "name": "o3-mini",
+    "short_name": "o3-mini",
+    "description": "думающая дешевая"
+  },
+  {
+    "name": "o4-mini",
+    "short_name": "o4-mini",
+    "description": "думающая дешевая NEW"
+  },
+  {
+    "name": "o3",
+    "short_name": "o3",
+    "description": "думающая"
+  },
+  {
+    "name": "o3-pro",
+    "short_name": "o3-pro-2025-06-10",
+    "description": "думающая дорогая"
+  }
+]
