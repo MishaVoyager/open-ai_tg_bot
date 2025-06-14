@@ -46,8 +46,6 @@ async def settings_handler(message: Message, visitor: Visitor) -> None:
 - gpt-4.1-nano - самая быстрая
 - o3-mini - думающая дешевая
 - o4-mini - думающая дешевая NEW
-- o3 - думающая
-- o3-pro - думающая дорогая
 """
     await message.answer(text, reply_markup=keyboard)
 

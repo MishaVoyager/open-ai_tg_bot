@@ -27,7 +27,7 @@ def generate_text(
         messages=messages,  # type: ignore
         n=n
     )
-    if model == "o3-mini":
+    if model == "o3-mini" or model == "o4-mini":
         messages.append(
             {"role": "system", "content": "Formatting re-enabled"}
         )
@@ -120,8 +120,9 @@ class GPTModel(StrEnum):
     gpt_41_nano = "gpt-4.1-nano"
     o3_mini = "o3-mini"
     o4_mini = "o4-mini"
-    o3 = "o3"
-    o3_pro = "o3-pro-2025-06-10"
+    # требуют верификации личности на 15.06.2025 (ее не пройти с российским паспортом):
+    # o3 = "o3"
+    # o3_pro = "o3-pro-2025-06-10"
 
 
 
