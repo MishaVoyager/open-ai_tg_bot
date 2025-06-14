@@ -116,8 +116,8 @@ def improve_transcript_by_gpt(transcript: str) -> str:
 
 class GPTModel(StrEnum):
     gpt_4o_mini = "gpt-4o-mini"
-    gpt_41_mini = "gpt_4.1_mini"
-    gpt_41_nano = "gpt_4.1_nano"
+    gpt_41_mini = "gpt-4.1-mini"
+    gpt_41_nano = "gpt-4.1-nano"
     o3_mini = "o3-mini"
     o4_mini = "o4-mini"
     o3 = "o3"
