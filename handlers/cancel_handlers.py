@@ -9,6 +9,8 @@ from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, ReplyKeyboardRemove
 
+from helpers.open_ai_helper import clean
+
 router = Router()
 
 
@@ -16,6 +18,7 @@ router = Router()
 @router.message(F.text.casefold().contains("отменить"))
 @router.message(F.text.casefold().contains("отмена"))
 async def cancel_handler(message: Message, state: FSMContext) -> None:
+    clean(str(message.from_user.id))
     current_state = await state.get_state()
     if current_state:
         await state.clear()

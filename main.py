@@ -26,8 +26,8 @@ async def start_bot(token: str) -> None:
     )
     await bot.set_my_commands(
         [
-            BotCommand(command="/dialog", description="Режим диалога"),
-            BotCommand(command="/teacher", description="Режим обучения"),
+            BotCommand(command="/friend", description="Чат с американцем"),
+            BotCommand(command="/teacher", description="Монолог с учителем"),
             BotCommand(command="/cancel", description="Выйти из текущего режима"),
             BotCommand(command="/settings", description="Изменить настройки запросов")
         ]
