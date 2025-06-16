@@ -26,7 +26,8 @@ async def start_handler(message: Message) -> None:
 
 Команды:
 
-/dialog для дружеских бесед на любые темы, текстом и голосом
+/dialog для диалога с ботом (запоминается контекст)
+/chat для дружеских бесед на любые темы, текстом и голосом
 /teacher для улучшения устной и письменной речи
 /cancel для возврата в базовый режим
 /settings для изменения модели (по умолчанию - gpt-4o-mini)
@@ -62,8 +63,8 @@ async def choose_model_handler(call: CallbackQuery, match: Match[str]) -> None:
     await call.message.delete()  # type: ignore
 
 
-@router.message(Command("dialog"))
-async def start_dialog_handler(message: Message, state: FSMContext) -> None:
+@router.message(Command("friend"))
+async def start_friend_chat_handler(message: Message, state: FSMContext) -> None:
     text = "Включен режим диалога! Болтайте с ботом голосовыми или текстом - он будет отвечать тем же способом"
     await message.answer(text)
     await state.set_state(Modes.conversation)

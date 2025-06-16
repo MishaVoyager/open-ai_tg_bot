@@ -38,7 +38,7 @@ async def search_audio_handler(message: Message, visitor: Visitor) -> None:
 
 
 @router.message(Modes.conversation, F.content_type.in_({'voice'}))
-async def continue_dialog_audio_handler(message: Message, visitor: Visitor) -> None:
+async def continue_friend_chat_audio_handler(message: Message, visitor: Visitor) -> None:
     in_memory_file = await tghelper.get_voice_from_tg(message)
     transcript = audio_to_text(in_memory_file)
     await message.answer(f"Транскрипт вашего аудио: \n\n{transcript}")
@@ -52,7 +52,7 @@ async def continue_dialog_audio_handler(message: Message, visitor: Visitor) -> N
 
 
 @router.message(Modes.conversation, F.content_type.in_({'text'}))
-async def continue_dialog_text_handler(message: Message, visitor: Visitor) -> None:
+async def continue_friend_chat_text_handler(message: Message, visitor: Visitor) -> None:
     result = get_answer_from_friend(message.text, visitor.model)
     text = result.refusal if result.refusal else result.content
     await send_text_any_size(message, text)
