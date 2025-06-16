@@ -38,11 +38,11 @@ async def send_text_any_size(message: Message, text: str) -> None:
         logging.info(f"Запрос: \n{answer}")
         # TODO автоматически определять, сообщение в формате markdown или нет
         try:
-            await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
-            logging.info("Сообщение отправлено в формате MARKDOWN_V2")
+            await message.answer(answer, parse_mode=ParseMode.MARKDOWN)
+            logging.info("Сообщение отправлено в формате MARKDOWN")
         except TelegramBadRequest:
-            print("Не удалось отправить сообщение в формате MARKDOWN_V2")
-            logging.warning("Не удалось отправить сообщение в формате MARKDOWN_V2")
+            print("Не удалось отправить сообщение в формате MARKDOWN")
+            logging.warning("Не удалось отправить сообщение в формате MARKDOWN")
             await message.answer(answer)
 
 
