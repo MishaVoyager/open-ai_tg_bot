@@ -7,7 +7,7 @@ from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import Message, CallbackQuery
 
 from domain.models import Visitor
-from helpers.open_ai_helper import GPTModel
+from helpers.open_ai_helper import GPTModel, clean
 from helpers.tghelper import get_inline_keyboard
 from service.visitor_actions import change_visitor_model
 
@@ -26,12 +26,12 @@ async def start_handler(message: Message) -> None:
 
 Команды:
 
-/dialog для диалога с ботом (запоминается контекст)
 /chat для дружеских бесед на любые темы, текстом и голосом
 /teacher для улучшения устной и письменной речи
 /cancel для возврата в базовый режим
 /settings для изменения модели (по умолчанию - gpt-4o-mini)
 /help для вызова подсказки по командам
+/clean для очистки истории
 """
     await message.answer(text)
 
@@ -65,6 +65,7 @@ async def choose_model_handler(call: CallbackQuery, match: Match[str]) -> None:
 
 @router.message(Command("friend"))
 async def start_friend_chat_handler(message: Message, state: FSMContext) -> None:
+    clean(str(message.from_user.id))
     text = "Включен режим диалога! Болтайте с ботом голосовыми или текстом - он будет отвечать тем же способом"
     await message.answer(text)
     await state.set_state(Modes.conversation)
@@ -72,7 +73,13 @@ async def start_friend_chat_handler(message: Message, state: FSMContext) -> None
 
 @router.message(Command("teacher"))
 async def start_monolog_handler(message: Message, state: FSMContext) -> None:
+    clean(str(message.from_user.id))
     text = """Включен режим обучения! 
 Присылайте текст или аудио - и учитель будет предлагать, как сделать речь правильней и естественней"""
     await message.answer(text)
     await state.set_state(Modes.monolog)
+
+
+@router.message(Command("clean"))
+async def clean_history_handler(message: Message) -> None:
+    clean(str(message.from_user.id))
