@@ -13,7 +13,7 @@ user_conversation_history: Dict[str, List[Dict[str, str]]] = {}
 
 
 def clean(user_id: str) -> None:
-    if user_id not in user_conversation_history:
+    if user_id in user_conversation_history:
         user_conversation_history[user_id] = []
 
 
@@ -39,7 +39,8 @@ def generate_text(
     Returns:
         ChatCompletionMessage containing the model's response
     """
-    clean(user_id)
+    if user_id not in user_conversation_history:
+        user_conversation_history[user_id] = []
     messages = user_conversation_history[user_id].copy()
     if developer_message:
         messages.append(developer_message)

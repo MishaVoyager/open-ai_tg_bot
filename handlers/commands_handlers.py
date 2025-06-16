@@ -83,3 +83,4 @@ async def start_monolog_handler(message: Message, state: FSMContext) -> None:
 @router.message(Command("clean"))
 async def clean_history_handler(message: Message) -> None:
     clean(str(message.from_user.id))
+    await message.answer("История сообщений очищена")
