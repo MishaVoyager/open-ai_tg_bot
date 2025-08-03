@@ -8,6 +8,6 @@ mypy~=1.17.0
 pytest~=8.4.1
 pytest-asyncio~=1.1.0
 openai~=1.98
-SQLAlchemy~=4.13.0
+SQLAlchemy~=2.0.42
 alembic~=1.16.4
 asyncpg~=0.30.0
