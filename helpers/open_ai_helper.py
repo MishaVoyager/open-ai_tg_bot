@@ -11,7 +11,7 @@ token = CommonSettings().OPENAI_API_KEY
 # Храним последний response_id для каждого пользователя для продолжения разговора
 user_last_response_id: Dict[str, str] = {}
 
-# Модели, поддерживающие reasoning_effort
+# Модели, поддерживающие reasoning
 REASONING_MODELS = {
     "o3-mini", "o3", "o3-pro", "o3-pro-2025-06-10",
     "o4-mini", "o4"
@@ -64,10 +64,10 @@ async def generate_text(
     # Получаем предыдущий response_id для продолжения разговора
     previous_response_id = user_last_response_id.get(user_id)
 
-    # Проверяем поддержку reasoning_effort
-    reasoning_effort = None
+    # Проверяем поддержку reasoning
+    reasoning = None
     if model in REASONING_MODELS:
-        reasoning_effort = "high"
+        reasoning = {"effort": "high"}
 
     # Подготавливаем инструменты
     tools = []
@@ -88,8 +88,8 @@ async def generate_text(
         if previous_response_id:
             request_params["previous_response_id"] = previous_response_id
 
-        if reasoning_effort:
-            request_params["reasoning_effort"] = reasoning_effort
+        if reasoning:
+            request_params["reasoning"] = reasoning
 
         if tools:
             request_params["tools"] = tools
