@@ -11,6 +11,15 @@ token = CommonSettings().OPENAI_API_KEY
 # Храним последний response_id для каждого пользователя для продолжения разговора
 user_last_response_id: Dict[str, str] = {}
 
+# Модели, поддерживающие reasoning_effort
+REASONING_MODELS = {
+    "o3-mini", "o3", "o3-pro", "o3-pro-2025-06-10",
+    "o4-mini", "o4"
+}
+
+# Модели, поддерживающие веб-поиск
+WEB_SEARCH_MODELS = {"gpt-4o", "gpt-4o-mini"}
+
 
 def clean(user_id: str) -> None:
     """Очистить историю разговора для конкретного пользователя."""
@@ -55,15 +64,18 @@ async def generate_text(
     # Получаем предыдущий response_id для продолжения разговора
     previous_response_id = user_last_response_id.get(user_id)
 
-    # Для o3-mini и o4-mini используем reasoning_effort
+    # Проверяем поддержку reasoning_effort
     reasoning_effort = None
-    if model in ["o3-mini", "o4-mini"]:
+    if model in REASONING_MODELS:
         reasoning_effort = "high"
 
     # Подготавливаем инструменты
     tools = []
     if use_web_search:
-        tools.append({"type": "web_search"})
+        if model in WEB_SEARCH_MODELS:
+            tools.append({"type": "web_search"})
+        else:
+            logging.warning(f"Веб-поиск запрошен, но модель {model} его не поддерживает. Используйте gpt-4o или gpt-4o-mini.")
 
     try:
         # Формируем параметры запроса
