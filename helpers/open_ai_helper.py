@@ -49,7 +49,7 @@ async def generate_text(
     """
     client = get_client()
     input_content = []
-    if developer_message:
+    if developer_message and isinstance(developer_message, dict):
         input_content.append(
             {"role": "system", "content": developer_message.get("content", "")}
         )

@@ -22,7 +22,7 @@ router.callback_query.middleware(DryMode())
 async def search_text_handler(message: Message, visitor: Visitor) -> None:
     tmp_message = await message.answer(get_random_processing_phrase())
     try:
-        result = await generate_text(str(message.from_user.id), message.text, visitor.model, visitor.model in WEB_SEARCH_MODELS)
+        result = await generate_text(str(message.from_user.id), message.text, visitor.model, use_web_search=visitor.model in WEB_SEARCH_MODELS)
         await tmp_message.delete()
         await send_text_any_size(message, result)
     except Exception as e:
