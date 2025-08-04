@@ -8,7 +8,7 @@ from aiogram.types import Message
 from domain.models import Visitor
 from handlers.commands_handlers import Modes
 from helpers import tghelper
-from helpers.open_ai_helper import generate_text, generate_text_with_web_search, audio_to_text, get_answer_from_friend, text_to_audio, \
+from helpers.open_ai_helper import generate_text, WEB_SEARCH_MODELS, audio_to_text, get_answer_from_friend, text_to_audio, \
     get_english_teacher_comment
 from helpers.tghelper import get_random_processing_phrase, process_file_for_tg, send_text_any_size
 from middlware.dry_mode_middlware import DryMode
@@ -22,7 +22,7 @@ router.callback_query.middleware(DryMode())
 async def search_text_handler(message: Message, visitor: Visitor) -> None:
     tmp_message = await message.answer(get_random_processing_phrase())
     try:
-        result = await generate_text(str(message.from_user.id), message.text, visitor.model)
+        result = await generate_text(str(message.from_user.id), message.text, visitor.model, visitor.model in WEB_SEARCH_MODELS)
         await tmp_message.delete()
         await send_text_any_size(message, result)
     except Exception as e:

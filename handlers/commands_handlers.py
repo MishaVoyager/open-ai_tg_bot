@@ -42,7 +42,7 @@ async def settings_handler(message: Message, visitor: Visitor) -> None:
     keyboard = get_inline_keyboard(options, "model")
     text = f"""Ваша текущая модель: {visitor.model}.\n 
 Какую выберете вместо нее?
-- gpt-4o-mini - дешевая и быстрая
+- gpt-4o-mini - дешевая, быстрая, с веб-поиском
 - gpt-4.1-mini - дешевая и быстрая NEW
 - gpt-4.1-nano - самая быстрая
 - o3-mini - думающая дешевая
