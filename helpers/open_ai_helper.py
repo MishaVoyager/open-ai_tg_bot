@@ -48,28 +48,18 @@ async def generate_text(
         str containing the model's response text
     """
     client = get_client()
-
-    # Формируем input
     input_content = []
-
-    # Добавляем системное сообщение если есть
     if developer_message:
         input_content.append(
             {"role": "system", "content": developer_message.get("content", "")}
         )
-
-    # Добавляем пользовательское сообщение
     input_content.append({"role": "user", "content": content})
-
-    # Получаем предыдущий response_id для продолжения разговора
     previous_response_id = user_last_response_id.get(user_id)
 
-    # Проверяем поддержку reasoning
     reasoning = None
     if model in REASONING_MODELS:
         reasoning = {"effort": "high"}
 
-    # Подготавливаем инструменты
     tools = []
     if use_web_search:
         if model in WEB_SEARCH_MODELS:
