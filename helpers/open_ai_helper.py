@@ -15,7 +15,6 @@ user_last_response_id: Dict[str, str] = {}
 REASONING_MODELS = {
     "gpt-5",
     "gpt-5-mini",
-    "o4-mini-deep-research",
     "o4-mini"
 }
 
@@ -31,7 +30,7 @@ WEB_SEARCH_MODELS = {
 class GPTModel(StrEnum):
     gpt_5 = "gpt-5"
     gpt_5_mini = "gpt-5-mini"
-    o4_mini = "o4-mini" # тоже убрать ее отовсюду
+    o4_mini = "o4-mini"
     o4_mini_deep_research = "o4-mini-deep-research"
 
 
