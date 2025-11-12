@@ -42,10 +42,10 @@ async def settings_handler(message: Message, visitor: Visitor) -> None:
     keyboard = get_inline_keyboard(options, "model")
     text = f"""Ваша текущая модель: {visitor.model}.\n 
 Какую выберете вместо нее?
-- gpt-5 - дорогая, но классная
-- gpt-5-mini - недорогая и классная 
-- o4-mini-deep-research - максимально исследует тему
-- o4-mini - дешевая и устаревшая 
+- gpt-5 - классная
+- gpt-5-mini - базовый вариант
+- o4-mini-deep-research - ооочень долгая, дорогая, но умная 
+- o4-mini - дешевая и слегка устаревшая 
 """
     await message.answer(text, reply_markup=keyboard)
 
