@@ -203,6 +203,11 @@ class GPTModel(StrEnum):
     gpt_41_nano = "gpt-4.1-nano"
     o3_mini = "o3-mini"
     o4_mini = "o4-mini"
+    gpt_5 = "gpt-5"
+    gpt_5_mini = "gpt-5-mini"
+    gpt_5_nano = "gpt-5-nano"
+    gpt_4_1 = "gpt-4.1"
+    o4_mini_deep_research = "o4-mini-deep-research"
     # требуют верификации личности на 15.06.2025 (ее не пройти с российским паспортом):
     # o3 = "o3"
     # o3_pro = "o3-pro-2025-06-10"
