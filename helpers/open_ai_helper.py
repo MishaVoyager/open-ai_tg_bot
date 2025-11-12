@@ -13,12 +13,26 @@ user_last_response_id: Dict[str, str] = {}
 
 # Модели, поддерживающие reasoning
 REASONING_MODELS = {
-    "o3-mini", "o3", "o3-pro", "o3-pro-2025-06-10",
-    "o4-mini", "o4"
+    "gpt-5",
+    "gpt-5-mini",
+    "o4-mini-deep-research",
+    "o4-mini"
 }
 
 # Модели, поддерживающие веб-поиск
-WEB_SEARCH_MODELS = {"gpt-4o", "gpt-4o-mini"}
+WEB_SEARCH_MODELS = {
+    "gpt-5",
+    "gpt-5-mini",
+    "o4-mini-deep-research",
+    "o4-mini"
+}
+
+
+class GPTModel(StrEnum):
+    gpt_5 = "gpt-5"
+    gpt_5_mini = "gpt-5-mini"
+    o4_mini = "o4-mini" # тоже убрать ее отовсюду
+    o4_mini_deep_research = "o4-mini-deep-research"
 
 
 def clean(user_id: str) -> None:
@@ -195,22 +209,6 @@ async def improve_transcript_by_gpt(transcript: str) -> str:
     except Exception as e:
         logging.error(f"Ошибка при улучшении транскрипта: {e}")
         raise
-
-
-class GPTModel(StrEnum):
-    gpt_4o_mini = "gpt-4o-mini"
-    gpt_41_mini = "gpt-4.1-mini"
-    gpt_41_nano = "gpt-4.1-nano"
-    o3_mini = "o3-mini"
-    o4_mini = "o4-mini"
-    gpt_5 = "gpt-5"
-    gpt_5_mini = "gpt-5-mini"
-    gpt_5_nano = "gpt-5-nano"
-    gpt_4_1 = "gpt-4.1"
-    o4_mini_deep_research = "o4-mini-deep-research"
-    # требуют верификации личности на 15.06.2025 (ее не пройти с российским паспортом):
-    # o3 = "o3"
-    # o3_pro = "o3-pro-2025-06-10"
 
 
 def get_client() -> AsyncOpenAI:
