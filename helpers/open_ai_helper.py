@@ -2,151 +2,217 @@ import logging
 from enum import StrEnum
 from typing import BinaryIO, Dict, Optional, List
 
-from openai import OpenAI
-from openai.types.chat import ChatCompletionMessage
+from openai import AsyncOpenAI
 
 from config.settings import CommonSettings
 
 token = CommonSettings().OPENAI_API_KEY
 
-user_conversation_history: Dict[str, List[Dict[str, str]]] = {}
+# Храним последний response_id для каждого пользователя для продолжения разговора
+user_last_response_id: Dict[str, str] = {}
+
+# Модели, поддерживающие reasoning
+REASONING_MODELS = {
+    "gpt-5.1",
+    "gpt-5-mini",
+    "o4-mini"
+}
+
+# Модели, поддерживающие веб-поиск
+WEB_SEARCH_MODELS = {
+    "gpt-5.1",
+    "gpt-5-mini",
+    "o4-mini-deep-research",
+    "o4-mini"
+}
+
+
+class GPTModel(StrEnum):
+    gpt_5_1 = "gpt-5.1"
+    gpt_5_mini = "gpt-5-mini"
+    o4_mini = "o4-mini"
+    o4_mini_deep_research = "o4-mini-deep-research"
 
 
 def clean(user_id: str) -> None:
-    if user_id in user_conversation_history:
-        user_conversation_history[user_id] = []
+    """Очистить историю разговора для конкретного пользователя."""
+    if user_id in user_last_response_id:
+        del user_last_response_id[user_id]
 
 
-def generate_text(
-        user_id: str,
-        content: str,
-        model: str = "gpt-4o-mini",
-        developer_message: Optional[Dict] = None,
-        max_history: int = 10,
-        n: int = 1,
-) -> ChatCompletionMessage:
+async def generate_text(
+    user_id: str,
+    content: str,
+    model: str = "gpt-4o-mini",
+    developer_message: Optional[Dict] = None,
+    use_web_search: bool = False,
+) -> str:
     """
     Generate text response while maintaining conversation history for a specific user.
-    
+
     Args:
-        content: User's message content
         user_id: user id to maintain separate conversation history
+        content: User's message content
         model: OpenAI model to use
         developer_message: Optional system message to set context
-        n: Number of responses to generate
-        max_history: Maximum number of messages to keep in history
-    
+        use_web_search: Whether to enable web search tool for the request
+
     Returns:
-        ChatCompletionMessage containing the model's response
+        str containing the model's response text
     """
-    if user_id not in user_conversation_history:
-        user_conversation_history[user_id] = []
-    messages = user_conversation_history[user_id].copy()
-    if developer_message:
-        messages.append(developer_message)
-    messages.append({"role": "user", "content": content})
-    completion = get_client().chat.completions.create(
-        model=model,
-        store=True,
-        messages=messages,  # type: ignore
-        n=n
-    )
-    if model == "o3-mini" or model == "o4-mini":
-        messages.append(
-            {"role": "system", "content": "Formatting re-enabled"}
+    client = get_client()
+    input_content = []
+    if developer_message and isinstance(developer_message, dict):
+        input_content.append(
+            {"role": "system", "content": developer_message.get("content", "")}
         )
-        completion = get_client().chat.completions.create(
-            model=model,
-            store=True,
-            messages=messages,  # type: ignore
-            n=n,
-            reasoning_effort="high"
+    input_content.append({"role": "user", "content": content})
+    previous_response_id = user_last_response_id.get(user_id)
+
+    reasoning = None
+    if model in REASONING_MODELS:
+        reasoning = {"effort": "medium"}
+
+    tools = []
+    if use_web_search:
+        if model in WEB_SEARCH_MODELS:
+            tools.append({"type": "web_search"})
+        else:
+            logging.warning(f"Веб-поиск запрошен, но модель {model} его не поддерживает")
+
+    try:
+        # Формируем параметры запроса
+        request_params = {
+            "model": model,
+            "input": input_content if not previous_response_id else content,
+            "store": True,
+        }
+
+        if previous_response_id:
+            request_params["previous_response_id"] = previous_response_id
+
+        if reasoning:
+            request_params["reasoning"] = reasoning
+
+        if tools:
+            request_params["tools"] = tools
+
+        response = await client.responses.create(**request_params)
+
+        # Сохраняем ID ответа для следующего запроса
+        user_last_response_id[user_id] = response.id
+
+        # Извлекаем текст ответа
+        response_text = ""
+        for output in response.output:
+            if hasattr(output, "content") and output.content:
+                for content_item in output.content:
+                    if hasattr(content_item, "text"):
+                        response_text += content_item.text
+
+        logging.info(
+            f"Запрос к {response.model} использовал {response.usage.total_tokens} токенов"
         )
-    user_conversation_history[user_id].extend([
-        {"role": "user", "content": content},
-        {"role": "assistant", "content": completion.choices[0].message.content}
-    ])
+        return response_text
 
-    if len(user_conversation_history[user_id]) > max_history * 2:  # *2 because each exchange has 2 messages
-        user_conversation_history[user_id] = user_conversation_history[user_id][-max_history * 2:]
-
-    logging.info(f"Запрос к {completion.model} использовал {completion.usage.total_tokens} токенов")
-    return completion.choices[0].message
+    except Exception as e:
+        logging.error(f"Ошибка при обращении к OpenAI API: {e}")
+        raise
 
 
-def audio_to_text(audio_file: BinaryIO) -> str:
-    transcription = get_client().audio.transcriptions.create(
-        model="whisper-1",
-        file=audio_file,
-        response_format="text"
+async def audio_to_text(audio_file: BinaryIO) -> str:
+    client = get_client()
+    transcription = await client.audio.transcriptions.create(
+        model="whisper-1", file=audio_file, response_format="text"
     )
     return transcription
 
 
-def text_to_audio(text: str, response_format: str = "mp3") -> BinaryIO:
-    response = get_client().audio.speech.create(
+async def text_to_audio(text: str, response_format: str = "mp3") -> BinaryIO:
+    client = get_client()
+    response = await client.audio.speech.create(
         model="tts-1",
         voice="alloy",
         input=text,
-        response_format=response_format  # type: ignore
+        response_format=response_format,  # type: ignore
     )
     return response.read()  # type: ignore
 
 
-def get_answer_from_friend(user_id: str, content: str, model: str = "gpt-4o-mini") -> ChatCompletionMessage:
+async def get_answer_from_friend(
+    user_id: str, content: str, model: str = "gpt-4o-mini"
+) -> str:
     prompt = """You are an american man. We are in a friendly dialogue.
     You can express your opinion and use informal phrases.
     Sometimes you can make jokes or ironical tone. 
     """
     developer_message = {"role": "system", "content": prompt}
-    return generate_text(user_id, content, model, developer_message)
+    return await generate_text(user_id, content, model, developer_message)
 
 
-def get_english_teacher_comment(user_id: str, content: str, model: str = "gpt-4o-mini") -> ChatCompletionMessage:
+async def get_english_teacher_comment(
+    user_id: str, content: str, model: str = "gpt-4o-mini"
+) -> str:
     prompt = """You are a helpful english teacher. 
     Please help to improve grammar, vocabulary and naturalness of this speech.
     Make verbose comment about errors in this areas.
     """
     developer_message = {"role": "system", "content": prompt}
-    return generate_text(user_id, content, model, developer_message)
+    return await generate_text(user_id, content, model, developer_message)
 
 
-def improve_transcript_by_gpt(transcript: str) -> str:
+async def generate_text_with_web_search(
+    user_id: str, content: str, model: str = "gpt-4o"
+) -> str:
+    """
+    Generate text response with web search capability.
+
+    Args:
+        user_id: user id to maintain separate conversation history
+        content: User's message content
+        model: OpenAI model to use (should be gpt-4o or gpt-4o-mini for web search)
+
+    Returns:
+        str containing the model's response text with web search results
+    """
+    return await generate_text(user_id, content, model, use_web_search=True)
+
+
+async def improve_transcript_by_gpt(transcript: str) -> str:
     system_prompt = """
     You are a helpful assistant. Your task is to correct any spelling discrepancies in the transcribed text.
     Only add necessary punctuation such as periods, commas, and capitalization, and use only the context provided.
     """
 
-    completion = get_client().chat.completions.create(
-        model="gpt-4o",
-        messages=[
-            {
-                "role": "system",
-                "content": system_prompt
-            },
-            {
-                "role": "user",
-                "content": transcript
-            }
-        ]
-    )
-    return completion.choices[0].message.content
+    try:
+        client = get_client()
+        response = await client.responses.create(
+            model="gpt-4o",
+            input=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": transcript},
+            ],
+            store=False,
+        )
+
+        # Извлекаем текст ответа
+        response_text = ""
+        for output in response.output:
+            if hasattr(output, "content") and output.content:
+                for content_item in output.content:
+                    if hasattr(content_item, "text"):
+                        response_text += content_item.text
+
+        return response_text
+
+    except Exception as e:
+        logging.error(f"Ошибка при улучшении транскрипта: {e}")
+        raise
 
 
-class GPTModel(StrEnum):
-    gpt_4o_mini = "gpt-4o-mini"
-    gpt_41_mini = "gpt-4.1-mini"
-    gpt_41_nano = "gpt-4.1-nano"
-    o3_mini = "o3-mini"
-    o4_mini = "o4-mini"
-    # требуют верификации личности на 15.06.2025 (ее не пройти с российским паспортом):
-    # o3 = "o3"
-    # o3_pro = "o3-pro-2025-06-10"
-
-
-def get_client() -> OpenAI:
-    return OpenAI(
+def get_client() -> AsyncOpenAI:
+    return AsyncOpenAI(
         api_key=token,
         organization="org-ivGGIRGxUk5rZmvxkoypdUUy",
-        project="proj_t7kgt6Awz7m2knmH4gL0xeh2"
+        project="proj_t7kgt6Awz7m2knmH4gL0xeh2",
     )
