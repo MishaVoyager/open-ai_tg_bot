@@ -13,14 +13,14 @@ user_last_response_id: Dict[str, str] = {}
 
 # Модели, поддерживающие reasoning
 REASONING_MODELS = {
-    "gpt-5",
+    "gpt-5.1",
     "gpt-5-mini",
     "o4-mini"
 }
 
 # Модели, поддерживающие веб-поиск
 WEB_SEARCH_MODELS = {
-    "gpt-5",
+    "gpt-5.1",
     "gpt-5-mini",
     "o4-mini-deep-research",
     "o4-mini"
@@ -28,7 +28,7 @@ WEB_SEARCH_MODELS = {
 
 
 class GPTModel(StrEnum):
-    gpt_5 = "gpt-5"
+    gpt_5_1 = "gpt-5.1"
     gpt_5_mini = "gpt-5-mini"
     o4_mini = "o4-mini"
     o4_mini_deep_research = "o4-mini-deep-research"
@@ -71,14 +71,14 @@ async def generate_text(
 
     reasoning = None
     if model in REASONING_MODELS:
-        reasoning = {"effort": "high"}
+        reasoning = {"effort": "medium"}
 
     tools = []
     if use_web_search:
         if model in WEB_SEARCH_MODELS:
             tools.append({"type": "web_search"})
         else:
-            logging.warning(f"Веб-поиск запрошен, но модель {model} его не поддерживает. Используйте gpt-4o или gpt-4o-mini.")
+            logging.warning(f"Веб-поиск запрошен, но модель {model} его не поддерживает")
 
     try:
         # Формируем параметры запроса
